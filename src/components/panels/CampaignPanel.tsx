@@ -150,8 +150,19 @@ function MessageStates({ messages }: { messages: OutreachMessage[] }) {
   return (
     <span className="msg-states small">
       {sent > 0 && <span className="ok-text">{sent} sent</span>}
-      {waiting > 0 && <span className="muted">{waiting} scheduled</span>}
-      {stopped > 0 && <span className="muted">{stopped} stopped</span>}
+      {waiting > 0 && (
+        <span className="muted" title={messages.filter((m) => ['scheduled', 'sending'].includes(m.status) && m.note).map((m) => `Step ${m.stepIndex + 1}: ${m.note}`).join('\n') || undefined}>
+          {waiting} scheduled
+        </span>
+      )}
+      {stopped > 0 && (
+        <span
+          className="muted"
+          title={messages.filter((m) => ['cancelled', 'skipped'].includes(m.status)).map((m) => `Step ${m.stepIndex + 1}: ${m.note || m.status}`).join('\n')}
+        >
+          {stopped} stopped
+        </span>
+      )}
       {failed > 0 && <span className="error-text">{failed} failed</span>}
     </span>
   );

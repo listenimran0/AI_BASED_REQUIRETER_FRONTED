@@ -147,6 +147,7 @@ export type ReplyItem = {
   injectionFlag: boolean;
   handled: boolean;
   autoSent: boolean;
+  autoNote?: string;
   error?: string;
   createdAt: string;
   candidate?: Candidate;

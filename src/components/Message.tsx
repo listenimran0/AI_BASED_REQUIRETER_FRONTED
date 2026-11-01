@@ -32,7 +32,7 @@ function Card({ card }: { card: CardRef }) {
     case 'replies':
       return (
         <div className="card">
-          <RepliesPanel jobId={ref.jobId} pendingOnly />
+          <RepliesPanel jobId={ref.jobId} replyId={ref.replyId} pendingOnly={!ref.replyId} />
         </div>
       );
     case 'stats':

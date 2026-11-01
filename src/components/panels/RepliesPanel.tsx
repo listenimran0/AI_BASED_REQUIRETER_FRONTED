@@ -12,7 +12,7 @@ const LABEL: Record<string, string> = {
   unsubscribe: 'Unsubscribe',
 };
 
-export function RepliesPanel({ jobId, pendingOnly }: { jobId: string; pendingOnly?: boolean }) {
+export function RepliesPanel({ jobId, pendingOnly, replyId }: { jobId: string; pendingOnly?: boolean; replyId?: string }) {
   const { data, error } = useLive(
     () => api.get<ReplyItem[]>(`/jobs/${jobId}/replies`),
     { jobId, entities: ['reply', 'candidate'] },
@@ -22,7 +22,7 @@ export function RepliesPanel({ jobId, pendingOnly }: { jobId: string; pendingOnl
   if (error) return <div className="error-text">{error}</div>;
   if (!data) return <div className="loading"><Spinner /> Loading replies</div>;
 
-  const list = pendingOnly ? data.filter((r) => r.draft?.status === 'draft') : data;
+  const list = replyId ? data.filter((r) => r.id === replyId) : pendingOnly ? data.filter((r) => r.draft?.status === 'draft') : data;
   if (!list.length) return <Empty title={pendingOnly ? 'No drafts waiting' : 'No replies yet'} hint="Use “Simulate reply” on a contacted candidate to try it." />;
 
   return (
@@ -34,11 +34,27 @@ export function RepliesPanel({ jobId, pendingOnly }: { jobId: string; pendingOnl
   );
 }
 
+function DraftEditor({ draft }: { draft: NonNullable<ReplyItem['draft']> }) {
+  // mounted with key={draft.id}, so the fields always start from the real draft text
+  const [subject, setSubject] = useState(draft.subject || '');
+  const [body, setBody] = useState(draft.body || '');
+  const { busy, run } = useAction();
+  return (
+    <>
+      <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
+      <textarea className="input" rows={7} value={body} onChange={(e) => setBody(e.target.value)} aria-label="Body" />
+      <div className="row-actions">
+        <button className="btn ghost sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/discard`))}>Discard</button>
+        <button className="btn primary sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/approve`, { subject, body }))}>
+          {busy ? <Spinner /> : <Icon name="send" size={14} />} Approve and send
+        </button>
+      </div>
+    </>
+  );
+}
+
 function Reply({ reply }: { reply: ReplyItem }) {
   const draft = reply.draft;
-  const [subject, setSubject] = useState(draft?.subject || '');
-  const [body, setBody] = useState(draft?.body || '');
-  const { busy, run } = useAction();
   const waiting = draft?.status === 'draft';
 
   return (
@@ -66,6 +82,7 @@ function Reply({ reply }: { reply: ReplyItem }) {
 
       <blockquote>{reply.text}</blockquote>
       {reply.rationale && <div className="muted small">AI reasoning: {reply.rationale}</div>}
+      {reply.autoNote && !reply.autoSent && <div className="muted small">Not auto-sent: {reply.autoNote}</div>}
 
       {draft && (
         <div className="email">
@@ -73,16 +90,7 @@ function Reply({ reply }: { reply: ReplyItem }) {
             {waiting ? 'Draft reply, waiting for your approval' : draft.status === 'sent' ? `Reply sent ${formatDate(draft.sentAt)}${reply.autoSent ? ' automatically' : ''}` : draft.status === 'scheduled' ? 'Reply is being sent' : `Draft ${draft.status}`}
           </div>
           {waiting ? (
-            <>
-              <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
-              <textarea className="input" rows={7} value={body} onChange={(e) => setBody(e.target.value)} aria-label="Body" />
-              <div className="row-actions">
-                <button className="btn ghost sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/discard`))}>Discard</button>
-                <button className="btn primary sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/approve`, { subject, body }))}>
-                  {busy ? <Spinner /> : <Icon name="send" size={14} />} Approve and send
-                </button>
-              </div>
-            </>
+            <DraftEditor key={draft.id} draft={draft} />
           ) : (
             <pre>{draft.body}</pre>
           )}
