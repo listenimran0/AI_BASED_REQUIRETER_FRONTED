@@ -1,0 +1,9 @@
+# Runs only the web app. Start the backend repo first (docker compose up) so the API is on :4000.
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_URL: http://localhost:4000
+    ports:
+      - "5173:80"
