@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { api } from '../../api';
-import { useLive } from '../../events';
-import type { ReplyItem } from '../../types';
-import { Empty, Icon, Spinner, StatusBadge, formatDate, pct, useAction } from '../../ui';
+import { jobsApi, repliesApi } from '@/api';
+import { useLive } from '@/hooks/useLive';
+import type { ReplyItem } from '@/types';
+import { Empty, Icon, Spinner, StatusBadge } from '@/components/ui';
+import { useAction } from '@/hooks/useAction';
+import { formatDate, pct } from '@/lib/format';
 
 const LABEL: Record<string, string> = {
   interested: 'Interested',
@@ -13,17 +15,19 @@ const LABEL: Record<string, string> = {
 };
 
 export function RepliesPanel({ jobId, pendingOnly, replyId }: { jobId: string; pendingOnly?: boolean; replyId?: string }) {
-  const { data, error } = useLive(
-    () => api.get<ReplyItem[]>(`/jobs/${jobId}/replies`),
-    { jobId, entities: ['reply', 'candidate'] },
-    [jobId],
-  );
+  const { data, error } = useLive(() => jobsApi.listReplies(jobId), { jobId, entities: ['reply', 'candidate'] }, [jobId]);
 
   if (error) return <div className="error-text">{error}</div>;
-  if (!data) return <div className="loading"><Spinner /> Loading replies</div>;
+  if (!data)
+    return (
+      <div className="loading">
+        <Spinner /> Loading replies
+      </div>
+    );
 
   const list = replyId ? data.filter((r) => r.id === replyId) : pendingOnly ? data.filter((r) => r.draft?.status === 'draft') : data;
-  if (!list.length) return <Empty title={pendingOnly ? 'No drafts waiting' : 'No replies yet'} hint="Use “Simulate reply” on a contacted candidate to try it." />;
+  if (!list.length)
+    return <Empty title={pendingOnly ? 'No drafts waiting' : 'No replies yet'} hint="Use “Simulate reply” on a contacted candidate to try it." />;
 
   return (
     <div className="replies">
@@ -44,8 +48,10 @@ function DraftEditor({ draft }: { draft: NonNullable<ReplyItem['draft']> }) {
       <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
       <textarea className="input" rows={7} value={body} onChange={(e) => setBody(e.target.value)} aria-label="Body" />
       <div className="row-actions">
-        <button className="btn ghost sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/discard`))}>Discard</button>
-        <button className="btn primary sm" disabled={busy} onClick={() => run(() => api.post(`/replies/${draft.id}/approve`, { subject, body }))}>
+        <button className="btn ghost sm" disabled={busy} onClick={() => run(() => repliesApi.discardReply(draft.id))}>
+          Discard
+        </button>
+        <button className="btn primary sm" disabled={busy} onClick={() => run(() => repliesApi.approveReply(draft.id, { subject, body }))}>
           {busy ? <Spinner /> : <Icon name="send" size={14} />} Approve and send
         </button>
       </div>
@@ -69,10 +75,15 @@ function Reply({ reply }: { reply: ReplyItem }) {
         ) : reply.error ? (
           <span className="pill warn">could not classify</span>
         ) : (
-          <span className="pill"><Spinner size={11} /> classifying</span>
+          <span className="pill">
+            <Spinner size={11} /> classifying
+          </span>
         )}
         {reply.injectionFlag && (
-          <span className="pill warn" title="The message contains text that looks like instructions to an AI. It was treated as plain data and cannot be auto-answered.">
+          <span
+            className="pill warn"
+            title="The message contains text that looks like instructions to an AI. It was treated as plain data and cannot be auto-answered."
+          >
             <Icon name="warn" size={12} /> flagged
           </span>
         )}
@@ -87,13 +98,15 @@ function Reply({ reply }: { reply: ReplyItem }) {
       {draft && (
         <div className="email">
           <div className="small muted">
-            {waiting ? 'Draft reply, waiting for your approval' : draft.status === 'sent' ? `Reply sent ${formatDate(draft.sentAt)}${reply.autoSent ? ' automatically' : ''}` : draft.status === 'scheduled' ? 'Reply is being sent' : `Draft ${draft.status}`}
+            {waiting
+              ? 'Draft reply, waiting for your approval'
+              : draft.status === 'sent'
+                ? `Reply sent ${formatDate(draft.sentAt)}${reply.autoSent ? ' automatically' : ''}`
+                : draft.status === 'scheduled'
+                  ? 'Reply is being sent'
+                  : `Draft ${draft.status}`}
           </div>
-          {waiting ? (
-            <DraftEditor key={draft.id} draft={draft} />
-          ) : (
-            <pre>{draft.body}</pre>
-          )}
+          {waiting ? <DraftEditor key={draft.id} draft={draft} /> : <pre>{draft.body}</pre>}
         </div>
       )}
       {!draft && reply.handled && reply.label && <div className="muted small">No reply drafted for this one.</div>}

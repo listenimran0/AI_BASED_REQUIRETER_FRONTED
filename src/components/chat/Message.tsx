@@ -1,12 +1,12 @@
 import ReactMarkdown from 'react-markdown';
-import type { CardRef, ChatMessage } from '../types';
-import { Icon } from '../ui';
-import { ActionCard } from './cards/ActionCard';
-import { JobCard, RunCard } from './cards/SmallCards';
-import { CampaignPanel } from './panels/CampaignPanel';
-import { CandidatesTable } from './panels/CandidatesTable';
-import { RepliesPanel } from './panels/RepliesPanel';
-import { StatsPanel } from './panels/StatsPanel';
+import type { CardRef, ChatMessage } from '@/types';
+import { Icon } from '@/components/ui';
+import { ActionCard } from '@/components/cards/action';
+import { JobCard, RunCard } from '@/components/cards/SmallCards';
+import { CampaignPanel } from '@/components/panels/campaign';
+import { CandidatesTable } from '@/components/panels/candidates';
+import { RepliesPanel } from '@/components/panels/RepliesPanel';
+import { StatsPanel } from '@/components/panels/StatsPanel';
 
 function Card({ card }: { card: CardRef }) {
   const { type, ref } = card;
@@ -60,7 +60,9 @@ export function Message({ message, onSuggest, canSuggest }: { message: ChatMessa
 
   return (
     <div className="msg assistant">
-      <div className="avatar"><Icon name="sparkle" size={15} /></div>
+      <div className="avatar">
+        <Icon name="sparkle" size={15} />
+      </div>
       <div className="msg-body">
         {message.content && (
           <div className="bubble">
@@ -73,7 +75,9 @@ export function Message({ message, onSuggest, canSuggest }: { message: ChatMessa
         {suggestions.length > 0 && (
           <div className="suggestions">
             {suggestions.map((s) => (
-              <button key={s} className="chip suggest" disabled={!canSuggest} onClick={() => onSuggest(s)}>{s}</button>
+              <button key={s} className="chip suggest" disabled={!canSuggest} onClick={() => onSuggest(s)}>
+                {s}
+              </button>
             ))}
           </div>
         )}

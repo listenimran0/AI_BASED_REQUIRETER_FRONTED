@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { api } from '../api';
-import { Message } from '../components/Message';
-import { useEvents } from '../events';
-import type { ChatMessage, Conversation } from '../types';
-import { Icon, Spinner, useToast } from '../ui';
+import { conversationsApi, jobsApi } from '@/api';
+import { Message } from '@/components/chat/Message';
+import { useEvents } from '@/hooks/useEvents';
+import type { ChatMessage, Conversation } from '@/types';
+import { Icon, Spinner } from '@/components/ui';
+import { useToast } from '@/context/ToastContext';
+import { dedupeCards } from '@/lib/chat';
 
 const STORAGE_KEY = 'recruiter.conversationId';
 
@@ -23,12 +25,12 @@ export function ChatPage() {
   }, []);
 
   const refreshConversation = useCallback(async (id: string) => {
-    const c = await api.get<Conversation>(`/conversations/${id}`);
+    const c = await conversationsApi.getConversation(id);
     setActiveJobId(c.activeJobId);
   }, []);
 
   const start = useCallback(async () => {
-    const c = await api.post<Conversation>('/conversations');
+    const c = await conversationsApi.createConversation();
     localStorage.setItem(STORAGE_KEY, c.id);
     setConversationId(c.id);
     return c.id;
@@ -43,14 +45,14 @@ export function ChatPage() {
         let history: ChatMessage[] = [];
         if (id) {
           try {
-            history = await api.get<ChatMessage[]>(`/conversations/${id}/messages`);
+            history = await conversationsApi.listMessages(id);
           } catch {
             id = null;
           }
         }
         if (!id) {
           id = await start();
-          history = await api.get<ChatMessage[]>(`/conversations/${id}/messages`);
+          history = await conversationsApi.listMessages(id);
         }
         if (cancelled) return;
         setMessages(history);
@@ -76,7 +78,10 @@ export function ChatPage() {
     if (e.type === 'agent' && e.conversationId === conversationId) setWorking(e.status);
     if (e.type === 'open') {
       // pick up anything missed while the stream was reconnecting
-      api.get<ChatMessage[]>(`/conversations/${conversationId}/messages`).then(setMessages).catch(() => {});
+      conversationsApi
+        .listMessages(conversationId)
+        .then(setMessages)
+        .catch(() => {});
     }
   });
 
@@ -90,7 +95,7 @@ export function ChatPage() {
     setText('');
     setWorking('Thinking…');
     try {
-      const saved = await api.post<ChatMessage>(`/conversations/${conversationId}/messages`, { text: content });
+      const saved = await conversationsApi.sendMessage(conversationId, content);
       upsert(saved);
     } catch (err) {
       setWorking(null);
@@ -116,7 +121,7 @@ export function ChatPage() {
     form.append('file', file);
     form.append('conversationId', conversationId);
     try {
-      await api.post(`/jobs/${activeJobId}/candidates/csv`, form);
+      await jobsApi.uploadCandidatesCsv(activeJobId, form);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Upload failed');
     } finally {
@@ -139,19 +144,29 @@ export function ChatPage() {
           <p className="muted">From job description to hire, by chatting.</p>
         </div>
         <div className="head-actions">
-          <button className="btn ghost sm" onClick={newChat}><Icon name="plus" size={14} /> New chat</button>
+          <button className="btn ghost sm" onClick={newChat}>
+            <Icon name="plus" size={14} /> New chat
+          </button>
         </div>
       </header>
 
       <div className="thread">
-        {loading && <div className="loading center"><Spinner /> Opening your chat</div>}
+        {loading && (
+          <div className="loading center">
+            <Spinner /> Opening your chat
+          </div>
+        )}
         {dedupeCards(messages).map((m) => (
           <Message key={m.id} message={m} onSuggest={send} canSuggest={!working} />
         ))}
         {working && (
           <div className="msg assistant">
-            <div className="avatar"><Icon name="sparkle" size={15} /></div>
-            <div className="bubble typing"><Spinner size={14} /> {working}</div>
+            <div className="avatar">
+              <Icon name="sparkle" size={15} />
+            </div>
+            <div className="bubble typing">
+              <Spinner size={14} /> {working}
+            </div>
           </div>
         )}
         <div ref={bottom} />
@@ -159,7 +174,11 @@ export function ChatPage() {
 
       <div className="composer-wrap">
         <div className="composer">
-          <button className="icon-btn" title={activeJobId ? 'Upload a candidate CSV for the current job' : 'Create a job first to upload candidates'} onClick={() => fileInput.current?.click()}>
+          <button
+            className="icon-btn"
+            title={activeJobId ? 'Upload a candidate CSV for the current job' : 'Create a job first to upload candidates'}
+            onClick={() => fileInput.current?.click()}
+          >
             <Icon name="clip" size={18} />
           </button>
           <input ref={fileInput} type="file" accept=".csv,text/csv" hidden onChange={(e) => upload(e.target.files?.[0])} />
@@ -178,27 +197,4 @@ export function ChatPage() {
       </div>
     </div>
   );
-}
-
-// Live cards (a campaign, a reply) update themselves, so showing the same one in several
-// messages just repeats it. Keep only the newest copy.
-function cardKey(card: { type: string; ref: Record<string, unknown> }) {
-  if (card.type === 'campaign') return `campaign:${card.ref.campaignId}`;
-  if (card.type === 'replies' && card.ref.replyId) return `reply:${card.ref.replyId}`;
-  return null;
-}
-
-function dedupeCards(messages: ChatMessage[]): ChatMessage[] {
-  const newest = new Map<string, string>();
-  for (const m of messages) for (const c of m.cards) {
-    const key = cardKey(c);
-    if (key) newest.set(key, m.id);
-  }
-  return messages.map((m) => {
-    const cards = m.cards.filter((c) => {
-      const key = cardKey(c);
-      return !key || newest.get(key) === m.id;
-    });
-    return cards.length === m.cards.length ? m : { ...m, cards };
-  });
 }

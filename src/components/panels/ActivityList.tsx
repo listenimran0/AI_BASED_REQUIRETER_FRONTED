@@ -1,7 +1,8 @@
-import { api } from '../../api';
-import { useLive } from '../../events';
-import type { Activity } from '../../types';
-import { Empty, Spinner, formatDate } from '../../ui';
+import { jobsApi } from '@/api';
+import { useLive } from '@/hooks/useLive';
+import type { Activity } from '@/types';
+import { Empty, Spinner } from '@/components/ui';
+import { formatDate } from '@/lib/format';
 
 const ACTOR: Record<string, string> = {
   'recruiter:ui': 'Recruiter (UI)',
@@ -12,8 +13,13 @@ const ACTOR: Record<string, string> = {
 };
 
 export function ActivityList({ jobId, limit = 60 }: { jobId: string; limit?: number }) {
-  const { data } = useLive(() => api.get<Activity[]>(`/jobs/${jobId}/activity?limit=${limit}`), { jobId, entities: ['activity'] }, [jobId]);
-  if (!data) return <div className="loading"><Spinner /> Loading activity</div>;
+  const { data } = useLive(() => jobsApi.listActivity(jobId, limit), { jobId, entities: ['activity'] }, [jobId]);
+  if (!data)
+    return (
+      <div className="loading">
+        <Spinner /> Loading activity
+      </div>
+    );
   if (!data.length) return <Empty title="Nothing has happened yet" />;
 
   return (

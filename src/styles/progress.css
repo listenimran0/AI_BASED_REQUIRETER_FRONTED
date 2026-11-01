@@ -1,0 +1,22 @@
+/* progress */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+.progress-track {
+  height: 7px;
+  background: #f4f4f5;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--brand);
+  border-radius: 99px;
+  transition: width 0.4s;
+}
+.progress-fill.ok {
+  background: #10b981;
+}

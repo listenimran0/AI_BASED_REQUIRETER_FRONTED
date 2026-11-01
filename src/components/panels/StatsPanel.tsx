@@ -1,25 +1,28 @@
 import { useState } from 'react';
-import { api } from '../../api';
-import { useLive } from '../../events';
-import type { JobStats } from '../../types';
-import { Icon, Spinner, pct, useAction } from '../../ui';
+import { jobsApi } from '@/api';
+import { useLive } from '@/hooks/useLive';
+import type { JobStats } from '@/types';
+import { Icon, Spinner } from '@/components/ui';
+import { useAction } from '@/hooks/useAction';
+import { pct } from '@/lib/format';
 
 export function StatsPanel({ jobId, compact }: { jobId: string; compact?: boolean }) {
-  const { data: stats, error } = useLive(
-    () => api.get<JobStats>(`/jobs/${jobId}/stats`),
-    { jobId, entities: ['candidate', 'campaign', 'reply', 'run'] },
-    [jobId],
-  );
+  const { data: stats, error } = useLive(() => jobsApi.getJobStats(jobId), { jobId, entities: ['candidate', 'campaign', 'reply', 'run'] }, [jobId]);
   const [summary, setSummary] = useState('');
   const { busy, run } = useAction();
 
   if (error) return <div className="error-text">{error}</div>;
-  if (!stats) return <div className="loading"><Spinner /> Loading stats</div>;
+  if (!stats)
+    return (
+      <div className="loading">
+        <Spinner /> Loading stats
+      </div>
+    );
 
   const top = Math.max(1, stats.funnel[0].reached);
 
   const loadSummary = async () => {
-    const result = await run(() => api.get<{ summary: string }>(`/jobs/${jobId}/summary`));
+    const result = await run(() => jobsApi.getJobSummary(jobId));
     if (result) setSummary(result.summary);
   };
 
@@ -51,7 +54,10 @@ export function StatsPanel({ jobId, compact }: { jobId: string; compact?: boolea
           Also: {stats.rejected} rejected, {stats.notInterested} not interested, {stats.unsubscribed} unsubscribed
           {stats.pendingReplyDrafts > 0 && ` · ${stats.pendingReplyDrafts} reply draft${stats.pendingReplyDrafts > 1 ? 's' : ''} waiting`}
         </span>
-        <span className="muted small" title={`${stats.cost.promptTokens} prompt and ${stats.cost.completionTokens} completion tokens over ${stats.cost.calls} calls`}>
+        <span
+          className="muted small"
+          title={`${stats.cost.promptTokens} prompt and ${stats.cost.completionTokens} completion tokens over ${stats.cost.calls} calls`}
+        >
           AI usage: {(stats.cost.promptTokens + stats.cost.completionTokens).toLocaleString()} tokens · ${stats.cost.usd.toFixed(4)}
         </span>
       </div>

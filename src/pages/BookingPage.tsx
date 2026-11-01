@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api } from '../api';
-import { Icon, Spinner } from '../ui';
+import { bookingApi } from '@/api';
+import { Icon, Spinner } from '@/components/ui';
 
 type Booking = { firstName: string; jobTitle?: string; booked: string | null; slots: string[] };
 
@@ -17,14 +17,17 @@ export function BookingPage() {
   const [done, setDone] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<Booking>(`/public/booking/${token}`).then(setData).catch((e: Error) => setError(e.message));
+    bookingApi
+      .getBooking<Booking>(token)
+      .then(setData)
+      .catch((e: Error) => setError(e.message));
   }, [token]);
 
   const book = async () => {
     setSaving(true);
     setError('');
     try {
-      await api.post(`/public/booking/${token}`, { slot: picked });
+      await bookingApi.bookSlot(token, picked);
       setDone(picked);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not book that time');
@@ -39,17 +42,22 @@ export function BookingPage() {
   return (
     <div className="booking">
       <div className="booking-card">
-        {!data && !error && <div className="loading center"><Spinner /> Loading</div>}
+        {!data && !error && (
+          <div className="loading center">
+            <Spinner /> Loading
+          </div>
+        )}
         {error && !data && <div className="error-text">{error}</div>}
 
         {data && booked && (
           <div className="booked">
-            <span className="big-check"><Icon name="check" size={28} /></span>
+            <span className="big-check">
+              <Icon name="check" size={28} />
+            </span>
             <h2>You are booked in</h2>
             <p>
               {new Date(booked).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' })}
-              <br />
-              A confirmation will follow from the recruiting team.
+              <br />A confirmation will follow from the recruiting team.
             </p>
           </div>
         )}
@@ -64,7 +72,9 @@ export function BookingPage() {
                   <b>{day}</b>
                   <div className="slots">
                     {slots.map((s) => (
-                      <button key={s} className={`slot ${picked === s ? 'on' : ''}`} onClick={() => setPicked(s)}>{timeOf(s)}</button>
+                      <button key={s} className={`slot ${picked === s ? 'on' : ''}`} onClick={() => setPicked(s)}>
+                        {timeOf(s)}
+                      </button>
                     ))}
                   </div>
                 </div>

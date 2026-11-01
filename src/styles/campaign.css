@@ -1,0 +1,121 @@
+/* campaign, replies */
+.campaign-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.steps-line {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+.step-pill {
+  font-size: 12px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-weight: 600;
+}
+.recipients {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+.recipient {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+.recipient.removed {
+  opacity: 0.5;
+}
+.recipient-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 10px 12px;
+  text-align: left;
+}
+.chev {
+  display: grid;
+  transition: transform 0.15s;
+  color: var(--muted);
+}
+.chev.open {
+  transform: rotate(90deg);
+}
+.msg-states {
+  display: flex;
+  gap: 10px;
+}
+.recipient-body {
+  padding: 4px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.email {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.email.readonly {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.email-subject {
+  font-weight: 600;
+}
+.campaign-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.replies {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.reply {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: #fff;
+}
+.reply-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+blockquote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid #d4d4d8;
+  background: #fafafa;
+  border-radius: 0 8px 8px 0;
+  color: var(--ink2);
+  white-space: pre-wrap;
+}
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

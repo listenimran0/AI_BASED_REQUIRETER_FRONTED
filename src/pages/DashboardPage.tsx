@@ -1,17 +1,14 @@
 import { Link } from 'react-router-dom';
-import { api } from '../api';
-import { useLive } from '../events';
-import type { Job, JobStats } from '../types';
-import { Empty, Icon, Spinner, pct } from '../ui';
+import { jobsApi } from '@/api';
+import { useLive } from '@/hooks/useLive';
+import type { Job, JobStats } from '@/types';
+import { Empty, Icon, Spinner } from '@/components/ui';
+import { pct } from '@/lib/format';
 
 type JobWithStats = Job & { stats: JobStats };
 
 export function DashboardPage() {
-  const { data: jobs, error } = useLive(
-    () => api.get<JobWithStats[]>('/jobs'),
-    { entities: ['candidate', 'campaign', 'reply', 'job'] },
-    [],
-  );
+  const { data: jobs, error } = useLive(() => jobsApi.listJobs<JobWithStats>(), { entities: ['candidate', 'campaign', 'reply', 'job'] }, []);
 
   return (
     <div className="page">
@@ -23,12 +20,18 @@ export function DashboardPage() {
       </header>
 
       {error && <div className="error-text">{error}</div>}
-      {!jobs && !error && <div className="loading"><Spinner /> Loading jobs</div>}
+      {!jobs && !error && (
+        <div className="loading">
+          <Spinner /> Loading jobs
+        </div>
+      )}
       {jobs && !jobs.length && (
         <div className="card">
           <Empty title="No jobs yet" hint="Start a chat, paste a job description and the AI will set everything up." />
           <div className="center pad">
-            <Link className="btn primary" to="/"><Icon name="chat" /> Open the chat</Link>
+            <Link className="btn primary" to="/">
+              <Icon name="chat" /> Open the chat
+            </Link>
           </div>
         </div>
       )}

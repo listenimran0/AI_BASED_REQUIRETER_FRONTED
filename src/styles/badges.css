@@ -1,0 +1,172 @@
+/* badges and pills */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c, #52525b);
+  background: color-mix(in srgb, var(--c, #52525b) 12%, white);
+  white-space: nowrap;
+}
+.st-sourced {
+  --c: #71717a;
+}
+.st-accepted {
+  --c: #2563eb;
+}
+.st-rejected {
+  --c: #dc2626;
+}
+.st-contacted {
+  --c: #7c3aed;
+}
+.st-replied {
+  --c: #0891b2;
+}
+.st-interested {
+  --c: #059669;
+}
+.st-not_interested {
+  --c: #a1a1aa;
+}
+.st-meeting_booked {
+  --c: #d97706;
+}
+.st-interviewed {
+  --c: #db2777;
+}
+.st-shortlisted {
+  --c: #3f3f46;
+}
+.st-hired {
+  --c: #16a34a;
+}
+.st-unsubscribed {
+  --c: #6b7280;
+}
+.st-bg-sourced {
+  background: #a1a1aa;
+}
+.st-bg-accepted {
+  background: #3b82f6;
+}
+.st-bg-contacted {
+  background: #8b5cf6;
+}
+.st-bg-replied {
+  background: #06b6d4;
+}
+.st-bg-interested {
+  background: #10b981;
+}
+.st-bg-meeting_booked {
+  background: #f59e0b;
+}
+.st-bg-interviewed {
+  background: #ec4899;
+}
+.st-bg-shortlisted {
+  background: #52525b;
+}
+.st-bg-hired {
+  background: #16a34a;
+}
+.camp-drafting,
+.camp-ready {
+  --c: #3f3f46;
+}
+.camp-active {
+  --c: #059669;
+}
+.camp-paused {
+  --c: #d97706;
+}
+.camp-completed {
+  --c: #71717a;
+}
+.camp-failed {
+  --c: #dc2626;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #f4f4f5;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.pill.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.pill.lab-interested,
+.pill.lab-wants_meeting {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.pill.lab-not_interested,
+.pill.lab-unsubscribe {
+  background: #f4f4f5;
+  color: #52525b;
+}
+.pill.lab-question {
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.chips.tight {
+  margin-bottom: 10px;
+}
+.chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--ink2);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.chip span {
+  color: var(--muted);
+}
+.chip.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.chip.on span {
+  color: #d4d4d8;
+}
+.skill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.skill {
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #f4f4f5;
+  color: var(--ink2);
+}
+.skill.yes {
+  background: var(--ok-soft);
+  color: #047857;
+}
+.skill.no {
+  background: #fef2f2;
+  color: #b91c1c;
+  text-decoration: line-through;
+  text-decoration-color: #fca5a5;
+}

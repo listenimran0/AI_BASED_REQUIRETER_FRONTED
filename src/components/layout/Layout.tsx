@@ -1,11 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { api } from '../api';
-import { useLive } from '../events';
-import type { Job } from '../types';
-import { Icon } from '../ui';
+import { jobsApi } from '@/api';
+import { useLive } from '@/hooks/useLive';
+import type { Job } from '@/types';
+import { Icon } from '@/components/ui';
 
 export function Layout() {
-  const { data: jobs } = useLive(() => api.get<Job[]>('/jobs'), { entities: ['job', 'activity'] }, []);
+  const { data: jobs } = useLive(() => jobsApi.listJobs(), { entities: ['job', 'activity'] }, []);
 
   return (
     <div className="shell">
